@@ -16,7 +16,7 @@ export default function LoginForm() {
 	const [password, setPassword] = useState("");
 	const [showPassword, setShowPassword] = useState(false);
 	const [error, setError] = useState<string | null>(null);
-	const next = "/learn";
+	const next = "/admin";
 	const hydratedRef = useRef(false);
 
 	useEffect(() => {

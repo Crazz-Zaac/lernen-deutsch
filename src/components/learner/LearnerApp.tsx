@@ -1,9 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { useAuth } from "@/hooks/useAuth";
 
 const LEARNER_FONTS_URL =
   "https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap";
@@ -583,8 +580,6 @@ function ReviseView({ reviseSet, setReviseSet }: { reviseSet: Set<number>; setRe
 type LearnerPage = "learn" | "quiz" | "grammar" | "revise";
 
 export default function LearnerApp({ initialPage = "learn" }: { initialPage?: LearnerPage }) {
-  const router = useRouter();
-  const { logout } = useAuth();
   const [page, setPage] = useState<LearnerPage>(initialPage);
   const [reviseSet, setReviseSet] = useState<Set<number>>(new Set());
 
@@ -654,15 +649,7 @@ export default function LearnerApp({ initialPage = "learn" }: { initialPage?: Le
         <div className="topbar">
           <div className="topbar-title">{titles[page]}</div>
           <div className="progress-pill">🔥 12 day streak</div>
-          <Button
-            variant="outline"
-            onClick={async () => {
-              await logout();
-              router.push("/login");
-            }}
-          >
-            Log out
-          </Button>
+          {/* logout hidden for learner view */}
         </div>
         <div className="content">
           {page === "learn" && <FlashcardsView reviseSet={reviseSet} setReviseSet={setReviseSet} />}
