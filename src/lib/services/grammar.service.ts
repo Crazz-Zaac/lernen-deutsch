@@ -1,6 +1,6 @@
 import { ID, Query, Models } from "appwrite";
 import type { GrammarRule } from "@/types";
-import { databases } from "@/lib/appwrite/client";
+import { getDatabases } from "@/lib/appwrite/client";
 import { APPWRITE_CONFIG } from "@/lib/appwrite/config";
 
 type GrammarDoc = Models.Document & {
@@ -20,6 +20,7 @@ const mapDocToRule = (doc: GrammarDoc): GrammarRule => ({
 });
 
 export async function fetchGrammar(): Promise<GrammarRule[]> {
+	const databases = getDatabases();
 	const response = await databases.listDocuments<GrammarDoc>(
 		databaseId,
 		collections.grammar,
@@ -30,6 +31,7 @@ export async function fetchGrammar(): Promise<GrammarRule[]> {
 
 export async function fetchGrammarById(id: string): Promise<GrammarRule | null> {
 	try {
+		const databases = getDatabases();
 		const doc = await databases.getDocument<GrammarDoc>(databaseId, collections.grammar, id);
 		return mapDocToRule(doc);
 	} catch {
@@ -38,6 +40,7 @@ export async function fetchGrammarById(id: string): Promise<GrammarRule | null> 
 }
 
 export async function createGrammar(rule: Omit<GrammarRule, "id">): Promise<GrammarRule> {
+	const databases = getDatabases();
 	const doc = await databases.createDocument<GrammarDoc>(
 		databaseId,
 		collections.grammar,
@@ -52,6 +55,7 @@ export async function createGrammar(rule: Omit<GrammarRule, "id">): Promise<Gram
 }
 
 export async function updateGrammar(id: string, rule: Omit<GrammarRule, "id">): Promise<GrammarRule> {
+	const databases = getDatabases();
 	const doc = await databases.updateDocument<GrammarDoc>(
 		databaseId,
 		collections.grammar,
@@ -66,5 +70,6 @@ export async function updateGrammar(id: string, rule: Omit<GrammarRule, "id">): 
 }
 
 export async function deleteGrammar(id: string): Promise<void> {
+	const databases = getDatabases();
 	await databases.deleteDocument(databaseId, collections.grammar, id);
 }

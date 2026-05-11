@@ -1,4 +1,4 @@
-import { account } from "@/lib/appwrite/client";
+import { getAccount } from "@/lib/appwrite/client";
 import { ID } from "appwrite";
 
 export type AuthSession = {
@@ -8,6 +8,7 @@ export type AuthSession = {
 
 export async function login(email: string, password: string): Promise<AuthSession> {
 	if (!email || !password) throw new Error("Missing credentials");
+	const account = getAccount();
 	try {
 		await account.get();
 		await account.deleteSession("current");
@@ -20,11 +21,13 @@ export async function login(email: string, password: string): Promise<AuthSessio
 }
 
 export async function logout(): Promise<void> {
+	const account = getAccount();
 	await account.deleteSession("current");
 }
 
 export async function getSession(): Promise<AuthSession | null> {
 	try {
+		const account = getAccount();
 		const user = await account.get();
 		return { userId: user.$id, email: user.email };
 	} catch {
@@ -33,6 +36,7 @@ export async function getSession(): Promise<AuthSession | null> {
 }
 
 export async function register(email: string, password: string, name?: string): Promise<AuthSession> {
+	const account = getAccount();
 	const user = await account.create(ID.unique(), email, password, name);
 	return { userId: user.$id, email: user.email };
 }

@@ -1,9 +1,30 @@
-import { Client, Account, Databases } from "appwrite";
+import { Account, Client, Databases } from "appwrite";
 import { APPWRITE_CONFIG } from "./config";
 
-const client = new Client()
-  .setEndpoint(APPWRITE_CONFIG.endpoint)
-  .setProject(APPWRITE_CONFIG.projectId);
+let client: Client | null = null;
+let account: Account | null = null;
+let databases: Databases | null = null;
 
-export const account = new Account(client);
-export const databases = new Databases(client);
+const initClient = () => {
+  if (typeof window === "undefined") return;
+  if (client) return;
+
+  const { endpoint, projectId } = APPWRITE_CONFIG;
+  if (!endpoint || !projectId) return;
+
+  client = new Client().setEndpoint(endpoint).setProject(projectId);
+  account = new Account(client);
+  databases = new Databases(client);
+};
+
+export const getAccount = () => {
+  initClient();
+  if (!account) throw new Error("Appwrite client not initialized");
+  return account;
+};
+
+export const getDatabases = () => {
+  initClient();
+  if (!databases) throw new Error("Appwrite client not initialized");
+  return databases;
+};

@@ -31,18 +31,60 @@ const LEARNER_STYLES = `
   html, body { height: 100%; background: var(--cream); color: var(--ink); font-family: var(--font-body); }
 
   .app { display: flex; height: 100vh; overflow: hidden; }
+  .sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    z-index: 20;
+  }
+  .sidebar-overlay.open { opacity: 1; pointer-events: auto; }
 
   .sidebar {
-    width: 220px; flex-shrink: 0;
+    width: 240px; flex-shrink: 0;
     background: var(--ink);
     display: flex; flex-direction: column;
     padding: 28px 0;
-    position: relative; z-index: 10;
+    position: fixed;
+    inset: 0 auto 0 0;
+    height: 100vh;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    z-index: 30;
   }
+  .sidebar.open { transform: translateX(0); }
   .sidebar-logo {
     padding: 0 24px 28px;
     border-bottom: 1px solid rgba(255,255,255,0.08);
     margin-bottom: 20px;
+  }
+  .sidebar-mobile-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 20px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    margin-bottom: 18px;
+  }
+  .sidebar-close {
+    width: 32px; height: 32px; border-radius: 8px;
+    border: 1.5px solid rgba(255,255,255,0.2);
+    background: transparent; color: #fff; cursor: pointer;
+    font-size: 16px; display: inline-flex; align-items: center; justify-content: center;
+  }
+  .sidebar-close:hover { background: rgba(255,255,255,0.08); }
+  .menu-btn {
+    display: inline-flex;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    border: 1.5px solid var(--border);
+    background: var(--card);
+    color: var(--ink2);
+    font-size: 18px;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
   }
   .sidebar-logo .logo-de {
     font-family: var(--font-display); font-size: 22px; font-weight: 700;
@@ -279,6 +321,13 @@ const LEARNER_STYLES = `
   .content::-webkit-scrollbar-thumb { background: var(--cream3); border-radius: 3px; }
   @keyframes fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
   .animate-in { animation: fadeUp 0.35s ease both; }
+
+  @media (max-width: 900px) {
+    .app { flex-direction: column; }
+    .topbar { padding: 0 16px; }
+    .content { padding: 20px; }
+    .progress-pill { display: none; }
+  }
 `;
 
 const SAMPLE_VOCAB = [
@@ -582,6 +631,7 @@ type LearnerPage = "learn" | "quiz" | "grammar" | "revise";
 export default function LearnerApp({ initialPage = "learn" }: { initialPage?: LearnerPage }) {
   const [page, setPage] = useState<LearnerPage>(initialPage);
   const [reviseSet, setReviseSet] = useState<Set<number>>(new Set());
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     const existingLink = document.querySelector<HTMLLinkElement>("link[data-learner-font]");
@@ -620,10 +670,19 @@ export default function LearnerApp({ initialPage = "learn" }: { initialPage?: Le
 
   return (
     <div className="app">
-      <aside className="sidebar">
-        <div className="sidebar-logo">
-          <div className="logo-de">Deutsch B1</div>
-          <div className="logo-sub">Learning Platform</div>
+      <div
+        className={`sidebar-overlay ${sidebarOpen ? "open" : ""}`}
+        onClick={() => setSidebarOpen(false)}
+      />
+      <aside className={`sidebar ${sidebarOpen ? "open" : ""}`}>
+        <div className="sidebar-mobile-header">
+          <div>
+            <div className="logo-de">Deutsch B1</div>
+            <div className="logo-sub">Learning Platform</div>
+          </div>
+          <button className="sidebar-close" onClick={() => setSidebarOpen(false)}>
+            ✕
+          </button>
         </div>
         <div className="nav-section">
           <div className="nav-label">Study</div>
@@ -631,7 +690,10 @@ export default function LearnerApp({ initialPage = "learn" }: { initialPage?: Le
             <button
               key={item.id}
               className={`nav-item ${page === item.id ? "active" : ""}`}
-              onClick={() => setPage(item.id)}
+              onClick={() => {
+                setPage(item.id);
+                setSidebarOpen(false);
+              }}
             >
               <span className="nav-icon">{item.icon}</span>
               {item.label}
@@ -647,6 +709,9 @@ export default function LearnerApp({ initialPage = "learn" }: { initialPage?: Le
       </aside>
       <div className="main">
         <div className="topbar">
+          <button className="menu-btn" onClick={() => setSidebarOpen((open) => !open)}>
+            ☰
+          </button>
           <div className="topbar-title">{titles[page]}</div>
           <div className="progress-pill">🔥 12 day streak</div>
           {/* logout hidden for learner view */}

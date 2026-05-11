@@ -1,6 +1,6 @@
 import { ID, Query, Models } from "appwrite";
 import type { VocabItem } from "@/types";
-import { databases } from "@/lib/appwrite/client";
+import { getDatabases } from "@/lib/appwrite/client";
 import { APPWRITE_CONFIG } from "@/lib/appwrite/config";
 
 type VocabDoc = Models.Document & {
@@ -22,6 +22,7 @@ const mapDocToItem = (doc: VocabDoc): VocabItem => ({
 });
 
 export async function fetchVocab(): Promise<VocabItem[]> {
+	const databases = getDatabases();
 	const response = await databases.listDocuments<VocabDoc>(
 		databaseId,
 		collections.vocab,
@@ -32,6 +33,7 @@ export async function fetchVocab(): Promise<VocabItem[]> {
 
 export async function fetchVocabById(id: string): Promise<VocabItem | null> {
 	try {
+		const databases = getDatabases();
 		const doc = await databases.getDocument<VocabDoc>(databaseId, collections.vocab, id);
 		return mapDocToItem(doc);
 	} catch {
@@ -40,6 +42,7 @@ export async function fetchVocabById(id: string): Promise<VocabItem | null> {
 }
 
 export async function createVocab(item: Omit<VocabItem, "id">): Promise<VocabItem> {
+	const databases = getDatabases();
 	const doc = await databases.createDocument<VocabDoc>(
 		databaseId,
 		collections.vocab,
@@ -55,6 +58,7 @@ export async function createVocab(item: Omit<VocabItem, "id">): Promise<VocabIte
 }
 
 export async function updateVocab(id: string, item: Omit<VocabItem, "id">): Promise<VocabItem> {
+	const databases = getDatabases();
 	const doc = await databases.updateDocument<VocabDoc>(
 		databaseId,
 		collections.vocab,
@@ -70,5 +74,6 @@ export async function updateVocab(id: string, item: Omit<VocabItem, "id">): Prom
 }
 
 export async function deleteVocab(id: string): Promise<void> {
+	const databases = getDatabases();
 	await databases.deleteDocument(databaseId, collections.vocab, id);
 }
