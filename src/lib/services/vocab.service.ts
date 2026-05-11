@@ -1,23 +1,74 @@
+import { ID, Query, Models } from "appwrite";
 import type { VocabItem } from "@/types";
+import { databases } from "@/lib/appwrite/client";
+import { APPWRITE_CONFIG } from "@/lib/appwrite/config";
+
+type VocabDoc = Models.Document & {
+	$id: string;
+	word: string;
+	definition: string;
+	example?: string;
+	tags?: string[];
+};
+
+const { databaseId, collections } = APPWRITE_CONFIG;
+
+const mapDocToItem = (doc: VocabDoc): VocabItem => ({
+	id: doc.$id,
+	word: doc.word,
+	definition: doc.definition,
+	example: doc.example ?? "",
+	tags: doc.tags ?? [],
+});
 
 export async function fetchVocab(): Promise<VocabItem[]> {
-	const response = await fetch("/api/vocab");
-	if (!response.ok) throw new Error("Failed to load vocab");
-	return response.json();
+	const response = await databases.listDocuments<VocabDoc>(
+		databaseId,
+		collections.vocab,
+		[Query.orderDesc("$createdAt")]
+	);
+	return response.documents.map(mapDocToItem);
 }
 
 export async function fetchVocabById(id: string): Promise<VocabItem | null> {
-	const response = await fetch(`/api/vocab/${id}`);
-	if (!response.ok) return null;
-	return response.json();
+	try {
+		const doc = await databases.getDocument<VocabDoc>(databaseId, collections.vocab, id);
+		return mapDocToItem(doc);
+	} catch {
+		return null;
+	}
 }
 
 export async function createVocab(item: Omit<VocabItem, "id">): Promise<VocabItem> {
-	const response = await fetch("/api/vocab", {
-		method: "POST",
-		headers: { "Content-Type": "application/json" },
-		body: JSON.stringify(item),
-	});
-	if (!response.ok) throw new Error("Failed to create vocab");
-	return response.json();
+	const doc = await databases.createDocument<VocabDoc>(
+		databaseId,
+		collections.vocab,
+		ID.unique(),
+		{
+			word: item.word,
+			definition: item.definition,
+			example: item.example ?? "",
+			tags: item.tags,
+		}
+	);
+	return mapDocToItem(doc);
+}
+
+export async function updateVocab(id: string, item: Omit<VocabItem, "id">): Promise<VocabItem> {
+	const doc = await databases.updateDocument<VocabDoc>(
+		databaseId,
+		collections.vocab,
+		id,
+		{
+			word: item.word,
+			definition: item.definition,
+			example: item.example ?? "",
+			tags: item.tags,
+		}
+	);
+	return mapDocToItem(doc);
+}
+
+export async function deleteVocab(id: string): Promise<void> {
+	await databases.deleteDocument(databaseId, collections.vocab, id);
 }

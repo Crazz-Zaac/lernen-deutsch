@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
+import { createVocab, deleteVocab, fetchVocab, updateVocab } from "@/lib/services/vocab.service";
+import { createGrammar, deleteGrammar, fetchGrammar, updateGrammar } from "@/lib/services/grammar.service";
 
 const ADMIN_FONTS_URL =
   "https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap";
@@ -265,17 +267,17 @@ const ADMIN_STYLES = `
 `;
 
 const VOCAB_DATA = [
-  { id: 1, word: "die Verantwortung", definition: "responsibility", example: "Er trägt die Verantwortung.", tags: ["nouns", "work"] },
-  { id: 2, word: "sich entscheiden", definition: "to decide", example: "Sie hat sich entschieden.", tags: ["verbs", "daily"] },
-  { id: 3, word: "die Gelegenheit", definition: "opportunity", example: "Das ist eine gute Gelegenheit.", tags: ["nouns", "abstract"] },
-  { id: 4, word: "überzeugen", definition: "to convince", example: "Er konnte mich überzeugen.", tags: ["verbs"] },
-  { id: 5, word: "bemerken", definition: "to notice", example: "Ich habe den Fehler bemerkt.", tags: ["verbs", "perception"] },
+  { id: "v1", word: "die Verantwortung", definition: "responsibility", example: "Er trägt die Verantwortung.", tags: ["nouns", "work"] },
+  { id: "v2", word: "sich entscheiden", definition: "to decide", example: "Sie hat sich entschieden.", tags: ["verbs", "daily"] },
+  { id: "v3", word: "die Gelegenheit", definition: "opportunity", example: "Das ist eine gute Gelegenheit.", tags: ["nouns", "abstract"] },
+  { id: "v4", word: "überzeugen", definition: "to convince", example: "Er konnte mich überzeugen.", tags: ["verbs"] },
+  { id: "v5", word: "bemerken", definition: "to notice", example: "Ich habe den Fehler bemerkt.", tags: ["verbs", "perception"] },
 ];
 
 const GRAMMAR_DATA = [
-  { id: 1, title: "Konjunktiv II", tags: ["mood", "subjunctive"], body: "Used for hypothetical situations and polite requests…" },
-  { id: 2, title: "Relativsätze", tags: ["clauses"], body: "Relative clauses using der/die/das as pronouns…" },
-  { id: 3, title: "Passiv Präsens", tags: ["voice", "passive"], body: "werden + Partizip II for passive constructions…" },
+  { id: "g1", title: "Konjunktiv II", tags: ["mood", "subjunctive"], body: "Used for hypothetical situations and polite requests…" },
+  { id: "g2", title: "Relativsätze", tags: ["clauses"], body: "Relative clauses using der/die/das as pronouns…" },
+  { id: "g3", title: "Passiv Präsens", tags: ["voice", "passive"], body: "werden + Partizip II for passive constructions…" },
 ];
 
 const VOCAB_SCHEMA = `[
@@ -700,9 +702,27 @@ type GrammarFormState = { title: string; tags: string[] };
 function VocabManager() {
   const [data, setData] = useState(VOCAB_DATA);
   const [adding, setAdding] = useState(false);
-  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<VocabFormState>({ word: "", definition: "", example: "", tags: [] });
   const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const normalizeVocab = (item: { id: string; word: string; definition: string; example?: string; tags: string[] }) => ({
+    id: item.id,
+    word: item.word,
+    definition: item.definition,
+    example: item.example ?? "",
+    tags: item.tags,
+  });
+
+  useEffect(() => {
+    setLoading(true);
+    fetchVocab()
+      .then((items) => {
+        setData(items.map(normalizeVocab));
+      })
+      .finally(() => setLoading(false));
+  }, []);
 
   const filtered = data.filter(
     (item) =>
@@ -712,29 +732,21 @@ function VocabManager() {
 
   const save = async () => {
     if (!form.word || !form.definition) return;
+    setLoading(true);
     if (editingId) {
-      const response = await fetch(`/api/vocab/${editingId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
-      const updated = await response.json();
-      setData((current) => current.map((item) => (item.id === editingId ? { ...item, ...updated } : item)));
+      const updated = await updateVocab(editingId, form);
+      setData((current) => current.map((item) => (item.id === editingId ? normalizeVocab(updated) : item)));
     } else {
-      const response = await fetch("/api/vocab", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
-      const created = await response.json();
-      setData((current) => [...current, { id: created.id ?? Date.now(), ...form }]);
+      const created = await createVocab(form);
+      setData((current) => [...current, normalizeVocab(created)]);
     }
     setForm({ word: "", definition: "", example: "", tags: [] });
     setAdding(false);
     setEditingId(null);
+    setLoading(false);
   };
 
-  const startEdit = (id: number) => {
+  const startEdit = (id: string) => {
     const item = data.find((entry) => entry.id === id);
     if (!item) return;
     setForm({ word: item.word, definition: item.definition, example: item.example, tags: item.tags });
@@ -742,9 +754,11 @@ function VocabManager() {
     setAdding(true);
   };
 
-  const remove = async (id: number) => {
-    await fetch(`/api/vocab/${id}`, { method: "DELETE" });
+  const remove = async (id: string) => {
+    setLoading(true);
+    await deleteVocab(id);
     setData((current) => current.filter((entry) => entry.id !== id));
+    setLoading(false);
   };
 
   return (
@@ -763,7 +777,7 @@ function VocabManager() {
               >
                 Cancel
               </button>
-              <button className="btn btn-primary btn-sm" onClick={save}>
+              <button className="btn btn-primary btn-sm" onClick={save} disabled={loading}>
                 {editingId ? "Save changes" : "Save entry"}
               </button>
             </div>
@@ -819,7 +833,7 @@ function VocabManager() {
               value={search}
               onChange={(event) => setSearch(event.target.value)}
             />
-            <button className="btn btn-primary btn-sm" onClick={() => setAdding(true)}>
+            <button className="btn btn-primary btn-sm" onClick={() => setAdding(true)} disabled={loading}>
               + Add word
             </button>
           </div>
@@ -879,34 +893,41 @@ function VocabManager() {
 function GrammarManager() {
   const [data, setData] = useState(GRAMMAR_DATA);
   const [adding, setAdding] = useState(false);
-  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<GrammarFormState>({ title: "", tags: [] });
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    setLoading(true);
+    fetchGrammar()
+      .then((items) => {
+        setData(items.map((item) => ({
+          id: item.id,
+          title: item.title,
+          tags: item.tags,
+          body: item.body,
+        })));
+      })
+      .finally(() => setLoading(false));
+  }, []);
 
   const save = async () => {
     if (!form.title) return;
+    setLoading(true);
     if (editingId) {
-      const response = await fetch(`/api/grammar/${editingId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, body: "…" }),
-      });
-      const updated = await response.json();
+      const updated = await updateGrammar(editingId, { ...form, body: "…" });
       setData((current) => current.map((item) => (item.id === editingId ? { ...item, ...updated } : item)));
     } else {
-      const response = await fetch("/api/grammar", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, body: "…" }),
-      });
-      const created = await response.json();
-      setData((current) => [...current, { id: created.id ?? Date.now(), ...form, body: "…" }]);
+      const created = await createGrammar({ ...form, body: "…" });
+      setData((current) => [...current, { ...created }]);
     }
     setForm({ title: "", tags: [] });
     setAdding(false);
     setEditingId(null);
+    setLoading(false);
   };
 
-  const startEdit = (id: number) => {
+  const startEdit = (id: string) => {
     const item = data.find((entry) => entry.id === id);
     if (!item) return;
     setForm({ title: item.title, tags: item.tags });
@@ -914,9 +935,11 @@ function GrammarManager() {
     setAdding(true);
   };
 
-  const remove = async (id: number) => {
-    await fetch(`/api/grammar/${id}`, { method: "DELETE" });
+  const remove = async (id: string) => {
+    setLoading(true);
+    await deleteGrammar(id);
     setData((current) => current.filter((entry) => entry.id !== id));
+    setLoading(false);
   };
 
   return (
@@ -935,7 +958,7 @@ function GrammarManager() {
               >
                 Cancel
               </button>
-              <button className="btn btn-primary btn-sm" onClick={save}>
+              <button className="btn btn-primary btn-sm" onClick={save} disabled={loading}>
                 {editingId ? "Save changes" : "Save rule"}
               </button>
             </div>
@@ -966,7 +989,7 @@ function GrammarManager() {
         <div className="panel">
           <div className="panel-header">
             <div className="panel-title">Grammar Rules</div>
-            <button className="btn btn-primary btn-sm" style={{ marginLeft: "auto" }} onClick={() => setAdding(true)}>
+            <button className="btn btn-primary btn-sm" style={{ marginLeft: "auto" }} onClick={() => setAdding(true)} disabled={loading}>
               + Add rule
             </button>
           </div>
