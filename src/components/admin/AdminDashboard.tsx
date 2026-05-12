@@ -126,7 +126,7 @@ const ADMIN_STYLES = `
   }
   .admin-user-name { font-size: 12px; font-weight: 500; color: var(--text2); }
 
-  .admin-main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  .admin-main { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
   .admin-topbar {
     height: 58px; background: var(--bg2); border-bottom: 1px solid var(--border);
     display: flex; align-items: center; padding: 0 28px; gap: 16px; flex-shrink: 0;
@@ -140,7 +140,7 @@ const ADMIN_STYLES = `
   }
   .admin-menu-btn:hover { background: var(--bg4); color: var(--text); }
   .admin-topbar-title { font-family: var(--font-display); font-size: 16px; font-weight: 700; flex: 1; }
-  .admin-content { flex: 1; overflow-y: auto; padding: 28px; }
+  .admin-content { flex: 1; overflow-y: auto; padding: 28px; min-width: 0; }
 
   @media (max-width: 900px) {
     .admin-topbar { padding: 0 16px; flex-wrap: wrap; height: auto; row-gap: 10px; }
@@ -170,7 +170,7 @@ const ADMIN_STYLES = `
 
   .panel {
     background: var(--bg2); border: 1px solid var(--border);
-    border-radius: 14px; overflow: hidden;
+    border-radius: 14px; overflow: hidden; width: 100%;
   }
   .panel-header {
     padding: 18px 22px; border-bottom: 1px solid var(--border);
@@ -213,7 +213,7 @@ const ADMIN_STYLES = `
   }
   .actions-cell { display: flex; gap: 6px; }
 
-  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; min-width: 0; }
   .form-field { display: flex; flex-direction: column; gap: 6px; }
   .form-field.full { grid-column: 1 / -1; }
   .form-label { font-size: 11px; font-weight: 600; color: var(--text3); letter-spacing: 1px; text-transform: uppercase; }
@@ -222,11 +222,13 @@ const ADMIN_STYLES = `
     background: var(--bg3); border: 1px solid var(--border);
     color: var(--text); font-size: 13.5px; font-family: var(--font-body);
     outline: none; transition: border-color 0.15s;
+    width: 100%;
   }
   .form-input:focus { border-color: var(--accent); }
   .form-input::placeholder { color: var(--text3); }
   .form-textarea { resize: vertical; min-height: 90px; line-height: 1.6; }
   .tag-input-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .tag-input-row { width: 100%; }
   .tag-pill-editable {
     display: inline-flex; align-items: center; gap: 6px;
     padding: 4px 10px; border-radius: 20px;
@@ -239,14 +241,14 @@ const ADMIN_STYLES = `
   .tag-add-input {
     background: none; border: 1px dashed var(--border2); border-radius: 20px;
     color: var(--text2); font-size: 12px; padding: 4px 12px; outline: none;
-    font-family: var(--font-body); width: 100px;
+    font-family: var(--font-body); width: 100px; max-width: 100%;
   }
   .tag-add-input:focus { border-color: var(--accent); color: var(--text); }
 
   .editor-toolbar {
     display: flex; gap: 2px; padding: 8px 10px;
     background: var(--bg3); border-bottom: 1px solid var(--border);
-    flex-wrap: wrap;
+    flex-wrap: wrap; max-width: 100%;
   }
   .editor-btn {
     padding: 5px 9px; border-radius: 6px; font-size: 12px; font-weight: 600;
@@ -261,6 +263,8 @@ const ADMIN_STYLES = `
     background: var(--bg3); color: var(--text);
     font-size: 14px; line-height: 1.7; outline: none;
     font-family: var(--font-body);
+    width: 100%;
+    max-width: 100%;
   }
   .editor-area[contenteditable]:empty::before { content: attr(data-placeholder); color: var(--text3); }
 
