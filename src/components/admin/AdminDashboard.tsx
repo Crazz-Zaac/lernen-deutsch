@@ -142,6 +142,15 @@ const ADMIN_STYLES = `
   .admin-topbar-title { font-family: var(--font-display); font-size: 16px; font-weight: 700; flex: 1; }
   .admin-content { flex: 1; overflow-y: auto; padding: 28px; }
 
+  @media (max-width: 900px) {
+    .admin-topbar { padding: 0 16px; flex-wrap: wrap; height: auto; row-gap: 10px; }
+    .admin-content { padding: 18px; }
+    .panel-header { flex-wrap: wrap; }
+    .panel-search { width: 100%; }
+    .panel-actions { width: 100%; margin-left: 0; }
+    .panel-actions .btn { width: 100%; justify-content: center; }
+  }
+
   .btn {
     padding: 9px 18px; border-radius: 8px; font-size: 13px; font-weight: 500;
     cursor: pointer; transition: all 0.15s; border: none; font-family: var(--font-body);
@@ -164,6 +173,9 @@ const ADMIN_STYLES = `
     padding: 18px 22px; border-bottom: 1px solid var(--border);
     display: flex; align-items: center; gap: 12px;
   }
+  .panel-search { width: 220px; }
+  .panel-actions { margin-left: auto; display: inline-flex; gap: 8px; }
+  .table-wrap { width: 100%; overflow-x: auto; }
   .panel-title { font-family: var(--font-display); font-size: 14px; font-weight: 700; }
   .panel-body { padding: 22px; }
 
@@ -180,7 +192,7 @@ const ADMIN_STYLES = `
   .stat-value.blue { color: var(--blue); }
   .stat-sub { font-size: 11px; color: var(--text3); margin-top: 6px; }
 
-  .data-table { width: 100%; border-collapse: collapse; }
+  .data-table { width: 100%; border-collapse: collapse; min-width: 720px; }
   .data-table th {
     text-align: left; font-size: 11px; font-weight: 600; color: var(--text3);
     letter-spacing: 1.5px; text-transform: uppercase;
@@ -866,63 +878,66 @@ function VocabManager() {
           <div className="panel-header">
             <div className="panel-title">Vocabulary</div>
             <input
-              className="form-input"
+              className="form-input panel-search"
               placeholder="Search…"
-              style={{ width: 200, marginLeft: "auto", marginRight: 10 }}
               value={search}
               onChange={(event) => setSearch(event.target.value)}
             />
-            <button className="btn btn-primary btn-sm" onClick={() => setAdding(true)} disabled={loading}>
-              + Add word
-            </button>
+            <div className="panel-actions">
+              <button className="btn btn-primary btn-sm" onClick={() => setAdding(true)} disabled={loading}>
+                + Add word
+              </button>
+            </div>
           </div>
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Word</th>
-                <th>Definition</th>
-                <th>Example</th>
-                <th>Tags</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((item) => (
-                <tr key={item.id}>
-                  <td className="word-cell">{item.word}</td>
-                  <td>{item.definition}</td>
-                  <td
-                    style={{
-                      fontStyle: "italic",
-                      maxWidth: 200,
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {item.example}
-                  </td>
-                  <td>
-                    {item.tags.map((tag) => (
-                      <span key={tag} className="tag-pill">
-                        {tag}
-                      </span>
-                    ))}
-                  </td>
-                  <td>
-                    <div className="actions-cell">
-                      <button className="btn btn-ghost btn-sm" onClick={() => startEdit(item.id)}>
-                        Edit
-                      </button>
-                      <button className="btn btn-danger btn-sm" onClick={() => remove(item.id)}>
-                        Del
-                      </button>
-                    </div>
-                  </td>
+          <div className="table-wrap">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Word</th>
+                  <th>Definition</th>
+                  <th>Example</th>
+                  <th>Tags</th>
+                  <th>Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {filtered.map((item) => (
+                  <tr key={item.id}>
+                    <td className="word-cell">{item.word}</td>
+                    <td>{item.definition}</td>
+                    <td
+                      style={{
+                        fontStyle: "italic",
+                        maxWidth: 200,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {item.example}
+                    </td>
+                    <td>
+                      {item.tags.map((tag) => (
+                        <span key={tag} className="tag-pill">
+                          {tag}
+                        </span>
+                      ))}
+                    </td>
+                    <td>
+                      <div className="actions-cell">
+                        <button className="btn btn-ghost btn-sm" onClick={() => startEdit(item.id)}>
+                          Edit
+                        </button>
+                        <button className="btn btn-danger btn-sm" onClick={() => remove(item.id)}>
+                          Del
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>

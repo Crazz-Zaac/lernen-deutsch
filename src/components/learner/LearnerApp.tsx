@@ -328,6 +328,12 @@ const LEARNER_STYLES = `
     .content { padding: 20px; }
     .progress-pill { display: none; }
   }
+
+  @media (max-width: 600px) {
+    .topbar { height: auto; flex-wrap: wrap; row-gap: 10px; padding: 12px 16px; }
+    .topbar-title { font-size: 16px; }
+    .content { padding: 16px; }
+  }
 `;
 
 const SAMPLE_VOCAB = [
