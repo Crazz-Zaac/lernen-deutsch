@@ -36,16 +36,47 @@ const ADMIN_STYLES = `
 
   .admin-app { display: flex; height: 100vh; overflow: hidden; }
 
+  .admin-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    z-index: 20;
+  }
+  .admin-overlay.open { opacity: 1; pointer-events: auto; }
+
   .admin-sidebar {
     width: 230px; flex-shrink: 0;
     background: var(--bg2);
     border-right: 1px solid var(--border);
     display: flex; flex-direction: column;
     padding: 0;
+    position: fixed;
+    inset: 0 auto 0 0;
+    height: 100vh;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    z-index: 30;
   }
-  .admin-logo {
-    padding: 22px 22px 18px;
+  .admin-sidebar.open { transform: translateX(0); }
+  .admin-sidebar-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 22px 18px 18px 22px;
     border-bottom: 1px solid var(--border);
+  }
+  .admin-sidebar-close {
+    width: 30px; height: 30px; border-radius: 8px;
+    border: 1px solid var(--border2); background: transparent;
+    color: var(--text2); cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 14px;
+  }
+  .admin-sidebar-close:hover { background: var(--bg3); color: var(--text); }
+  .admin-logo {
+    padding: 0;
+    border-bottom: none;
   }
   .admin-logo-mark {
     font-family: var(--font-display); font-size: 16px; font-weight: 800;
@@ -100,6 +131,14 @@ const ADMIN_STYLES = `
     height: 58px; background: var(--bg2); border-bottom: 1px solid var(--border);
     display: flex; align-items: center; padding: 0 28px; gap: 16px; flex-shrink: 0;
   }
+  .admin-menu-btn {
+    width: 34px; height: 34px; border-radius: 8px;
+    border: 1px solid var(--border); background: var(--bg3);
+    color: var(--text2); cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+  .admin-menu-btn:hover { background: var(--bg4); color: var(--text); }
   .admin-topbar-title { font-family: var(--font-display); font-size: 16px; font-weight: 700; flex: 1; }
   .admin-content { flex: 1; overflow-y: auto; padding: 28px; }
 
@@ -1133,6 +1172,7 @@ export default function AdminDashboard() {
   const { logout, hydrate } = useAuth();
   const [page, setPage] = useState<NavItem["id"]>("overview");
   const [authChecked, setAuthChecked] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     const existingLink = document.querySelector<HTMLLinkElement>("link[data-admin-font]");
@@ -1182,12 +1222,21 @@ export default function AdminDashboard() {
 
   return (
     <div className="admin-app">
-      <aside className="admin-sidebar">
-        <div className="admin-logo">
-          <div className="admin-logo-mark">
-            Deutsch<span>B1</span>
+      <div
+        className={`admin-overlay ${sidebarOpen ? "open" : ""}`}
+        onClick={() => setSidebarOpen(false)}
+      />
+      <aside className={`admin-sidebar ${sidebarOpen ? "open" : ""}`}>
+        <div className="admin-sidebar-header">
+          <div className="admin-logo">
+            <div className="admin-logo-mark">
+              Deutsch<span>B1</span>
+            </div>
+            <div className="admin-logo-sub">Admin Panel</div>
           </div>
-          <div className="admin-logo-sub">Admin Panel</div>
+          <button className="admin-sidebar-close" onClick={() => setSidebarOpen(false)}>
+            ✕
+          </button>
         </div>
         <div className="admin-nav">
           <div className="admin-nav-label">Content</div>
@@ -1221,6 +1270,9 @@ export default function AdminDashboard() {
 
       <div className="admin-main">
         <div className="admin-topbar">
+          <button className="admin-menu-btn" onClick={() => setSidebarOpen((open) => !open)}>
+            ☰
+          </button>
           <div className="admin-topbar-title">{titles[page]}</div>
           <button
             className="btn btn-ghost btn-sm"
