@@ -146,9 +146,12 @@ const ADMIN_STYLES = `
     .admin-topbar { padding: 0 16px; flex-wrap: wrap; height: auto; row-gap: 10px; }
     .admin-content { padding: 18px; }
     .panel-header { flex-wrap: wrap; }
+    .panel-body { padding: 18px; }
     .panel-search { width: 100%; }
     .panel-actions { width: 100%; margin-left: 0; }
     .panel-actions .btn { width: 100%; justify-content: center; }
+    .form-grid { grid-template-columns: 1fr; }
+    .form-field.full { grid-column: auto; }
   }
 
   .btn {
